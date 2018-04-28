@@ -76,23 +76,40 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
           x_(0) = meas_package.raw_measurements_(0);
           x_(1) = meas_package.raw_measurements_(1);
-          x_(2) = 0; // We will assume it is stationary to start with
-          x_(3) = 0; // We will assume it is oriented along the x-axis
-          x_(4) = 0; // We will assume there is no angular acceleration
+          x_(2) = 0.0; // We will assume it is stationary to start with
+          x_(3) = 0.0; // We will assume it is oriented along the x-axis
+          x_(4) = 0.0; // We will assume there is no angular acceleration
+
+          P_ << 1, 0, 0, 0, 0,
+                0, 1, 0, 0, 0,
+                0, 0, 1, 0, 0,
+                0, 0, 0, 0, 1;
 
       } else {
           x_(0) = meas_package.raw_measurements_(0) * cos(meas_package.raw_measurements_(1));
           x_(1) = meas_package.raw_measurements_(0) * sin(meas_package.raw_measurements_(1));
           x_(2) = meas_package.raw_measurements_(2);  // Let's assume that the bicycle is heading head on towards the car
           x_(3) = meas_package.raw_measurements_(1);  // The yaw angle is just the angle with the x-axis as measured by radar
-          x_(2) = 0.0;
+          x_(4) = 0.0;
 
-
+          P_ << 1, 0, 0, 0, 0,
+                0, 1, 0, 0, 0,
+                0, 0, 1, 0, 0,
+                0, 0, 0, 0, 1;
       }
+      time_us_ = meas_package.timestamp_;
       is_initialized_ = true;
       return;
   }
 
+  double delta_t = (meas_package.timestamp_ - time_us_)/1.0e6;
+  Prediction(delta_t);
+
+  if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
+      UpdateLidar(meas_package);
+  } else {
+      UpdateRadar(meas_package);
+  }
 }
 
 /**
