@@ -12,6 +12,8 @@ using std::vector;
  * This is scaffolding, do not modify
  */
 UKF::UKF() {
+
+  is_initialized_ = false;
   // if this is false, laser measurements will be ignored (except during init)
   use_laser_ = true;
 
@@ -29,7 +31,7 @@ UKF::UKF() {
 
   // Process noise standard deviation yaw acceleration in rad/s^2
   std_yawdd_ = 30;
-  
+
   //DO NOT MODIFY measurement noise values below these are provided by the sensor manufacturer.
   // Laser measurement noise standard deviation position1 in m
   std_laspx_ = 0.15;
@@ -46,7 +48,7 @@ UKF::UKF() {
   // Radar measurement noise standard deviation radius change in m/s
   std_radrd_ = 0.3;
   //DO NOT MODIFY measurement noise values above these are provided by the sensor manufacturer.
-  
+
   /**
   TODO:
 
@@ -69,6 +71,28 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   Complete this function! Make sure you switch between lidar and radar
   measurements.
   */
+
+  if (!is_initialized_){
+      if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
+          x_(0) = meas_package.raw_measurements_(0);
+          x_(1) = meas_package.raw_measurements_(1);
+          x_(2) = 0; // We will assume it is stationary to start with
+          x_(3) = 0; // We will assume it is oriented along the x-axis
+          x_(4) = 0; // We will assume there is no angular acceleration
+
+      } else {
+          x_(0) = meas_package.raw_measurements_(0) * cos(meas_package.raw_measurements_(1));
+          x_(1) = meas_package.raw_measurements_(0) * sin(meas_package.raw_measurements_(1));
+          x_(2) = meas_package.raw_measurements_(2);  // Let's assume that the bicycle is heading head on towards the car
+          x_(3) = meas_package.raw_measurements_(1);  // The yaw angle is just the angle with the x-axis as measured by radar
+          x_(2) = 0.0;
+
+
+      }
+      is_initialized_ = true;
+      return;
+  }
+
 }
 
 /**
