@@ -272,9 +272,6 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 
   You'll also need to calculate the lidar NIS.
   */
-  cout << " Before LASER Update " << endl;
-  cout << "x_ = " << endl << x_ << endl;
-  cout << "P_ = " << endl << P_ << endl;
 
   // Step: 1 Predict the LIDAR measurement
   int n_z = 2;
@@ -340,13 +337,12 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   VectorXd z = meas_package.raw_measurements_;
   VectorXd z_diff = z - z_pred;
 
-  //angle normalization
   x_ = x_ + K * z_diff;
   P_ = P_ - K * S * K.transpose();
 
-  cout << " After Update " << endl;
-  cout << "x_ = " << endl << x_ << endl;
-  cout << "P_ = " << endl << P_ << endl;
+  double nis = (z - z_pred).transpose() * S.inverse() * (z - z_pred);
+  cout << " nis (LIDAR) = " << nis << endl;
+
 }
 
 /**
@@ -363,9 +359,6 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   You'll also need to calculate the radar NIS.
   */
 
-  cout << " Before Update " << endl;
-  cout << "x_ = " << endl << x_ << endl;
-  cout << "P_ = " << endl << P_ << endl;
 
   // Step: 1 Predict the radar measurement
   int n_z = 3;
@@ -446,8 +439,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   x_ = x_ + K * z_diff;
   P_ = P_ - K * S * K.transpose();
 
-  cout << " After Update " << endl;
-  cout << "x_ = " << endl << x_ << endl;
-  cout << "P_ = " << endl << P_ << endl;
+  double nis = (z - z_pred).transpose() * S.inverse() * (z - z_pred);
+  cout << " nis (RADAR) = " << nis << endl;
 
 }
